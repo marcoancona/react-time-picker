@@ -2,25 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import mergeClassNames from 'merge-class-names';
 
-import {
-  getHours,
-  convert24to12,
-} from '../shared/dates';
-import { isTime } from '../shared/propTypes';
-
 class AmPm extends PureComponent {
-  get amDisabled() {
-    const { minTime } = this.props;
-
-    return minTime && convert24to12(getHours(minTime))[1] === 'pm';
-  }
-
-  get pmDisabled() {
-    const { maxTime } = this.props;
-
-    return maxTime && convert24to12(getHours(maxTime))[1] === 'am';
-  }
-
   render() {
     const {
       className, disabled, itemRef, onChange, required, value,
@@ -50,10 +32,10 @@ class AmPm extends PureComponent {
             --
           </option>
         )}
-        <option disabled={this.amDisabled} value="am">
+        <option value="am">
           am
         </option>
-        <option disabled={this.pmDisabled} value="pm">
+        <option value="pm">
           pm
         </option>
       </select>
@@ -65,8 +47,6 @@ AmPm.propTypes = {
   className: PropTypes.string.isRequired,
   disabled: PropTypes.bool,
   itemRef: PropTypes.func,
-  maxTime: isTime,
-  minTime: isTime,
   onChange: PropTypes.func,
   required: PropTypes.bool,
   value: PropTypes.oneOf(['am', 'pm']),

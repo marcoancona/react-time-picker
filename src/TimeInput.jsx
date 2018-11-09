@@ -97,6 +97,32 @@ export default class TimeInput extends PureComponent {
       nextState.value = nextValue;
     }
 
+    nextState.minTimeString = '00:00:00';
+    if (nextProps.minTime) {
+      if (nextProps.minTime instanceof Date) {
+        const hour = `0${nextProps.minTime.getHours()}`.slice(-2);
+        const minute = `0${nextProps.minTime.getMinutes()}`.slice(-2);
+        const second = `0${nextProps.minTime.getSeconds()}`.slice(-2);
+        nextState.minTimeString = `${hour}:${minute}:${second}`;
+      }
+      else {
+        nextState.minTimeString = nextProps.minTime;
+      }
+    }
+
+    nextState.maxTimeString = '23:59:59';
+    if (nextProps.maxTime) {
+      if (nextProps.maxTime instanceof Date) {
+        const hour = `0${nextProps.maxTime.getHours()}`.slice(-2);
+        const minute = `0${nextProps.maxTime.getMinutes()}`.slice(-2);
+        const second = `0${nextProps.maxTime.getSeconds()}`.slice(-2);
+        nextState.maxTimeString = `${hour}:${minute}:${second}`;
+      }
+      else {
+        nextState.maxTimeString = nextProps.maxTime;
+      }
+    }
+
     return nextState;
   }
 
@@ -168,16 +194,12 @@ export default class TimeInput extends PureComponent {
       className,
       disabled,
       isClockOpen,
-      maxTime,
-      minTime,
       required,
     } = this.props;
 
     return {
       className,
       disabled,
-      maxTime,
-      minTime,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
       placeholder: '--',
@@ -190,8 +212,42 @@ export default class TimeInput extends PureComponent {
     };
   }
 
+  isValidTime = (timeString) => {
+    const { minTimeString, maxTimeString } = this.state;
+    return (Date.parse(`1990-01-01T${timeString}`) && timeString >= minTimeString && timeString <= maxTimeString);
+  }
+
   onKeyDown = (event) => {
+    let offset = null;
     switch (event.key) {
+      case 'ArrowUp': {
+        offset = 1;
+      }
+      case 'ArrowDown': {
+        event.preventDefault();
+        if (!offset) offset = -1;
+        const key = event.target.name;
+        const { hour, minute, second } = this.state;
+        let hourString = `0${hour}`.slice(-2);
+        let minuteString = `0${minute}`.slice(-2);
+        let secondString = `0${second}`.slice(-2);
+        const nextValue = new Date(`1900-01-01T${hourString}:${minuteString}:${secondString}`);
+        if (key === 'second') {
+          nextValue.setSeconds(nextValue.getSeconds() + offset);
+        }
+        else if (key === 'minute') {
+          nextValue.setMinutes(nextValue.getMinutes() + offset);
+        }
+        else if (key === 'hour12' || key === 'hour24') {
+          nextValue.setHours(nextValue.getHours() + offset);
+        }
+        hourString = `0${nextValue.getHours()}`.slice(-2);
+        minuteString = `0${nextValue.getMinutes()}`.slice(-2);
+        secondString = `0${nextValue.getSeconds()}`.slice(-2);
+        const timeString = `${hourString}:${minuteString}:${secondString}`;
+        this.onChangeKeyEvent(timeString);
+        break;
+      }
       case 'ArrowLeft': {
         event.preventDefault();
 
@@ -276,6 +332,16 @@ export default class TimeInput extends PureComponent {
     );
   }
 
+  onChangeKeyEvent = (proposedValue) => {
+    const { onChange } = this.props;
+
+    if (!onChange || !this.isValidTime(proposedValue)) {
+      return;
+    }
+    const processedValue = this.getProcessedValue(proposedValue);
+    return onChange(processedValue, false);
+  }
+
   /**
    * Called after internal onChange. Checks input validity. If all fields are valid,
    * calls props.onChange.
@@ -296,6 +362,7 @@ export default class TimeInput extends PureComponent {
     ].filter(Boolean);
 
     const formElementsWithoutSelect = formElements.slice(0, -1);
+    const activeElement = formElementsWithoutSelect.find(el => document.activeElement === el);
 
     const values = {};
     formElements.forEach((formElement) => {
@@ -304,15 +371,23 @@ export default class TimeInput extends PureComponent {
 
     if (formElementsWithoutSelect.every(formElement => !formElement.value)) {
       onChange(null, false);
-    } else if (
-      formElements.every(formElement => formElement.value && formElement.checkValidity())
-    ) {
+    } else {
       const hour = `0${values.hour24 || convert12to24(values.hour12, values.amPm)}`.slice(-2);
       const minute = `0${values.minute || 0}`.slice(-2);
       const second = `0${values.second || 0}`.slice(-2);
       const timeString = `${hour}:${minute}:${second}`;
-      const processedValue = this.getProcessedValue(timeString);
-      onChange(processedValue, false);
+
+      if (this.isValidTime(timeString)) {
+        formElementsWithoutSelect.forEach(el => el.setCustomValidity(''));
+        const processedValue = this.getProcessedValue(timeString);
+        onChange(processedValue, false);
+      }
+      else if (activeElement) {
+        activeElement.setCustomValidity('Invalid date');
+      }
+      else {
+        formElementsWithoutSelect.forEach(el => el.setCustomValidity('Invalid range'));
+      }
     }
   }
 
@@ -348,13 +423,12 @@ export default class TimeInput extends PureComponent {
       return null;
     }
 
-    const { hour, minute } = this.state;
+    const { minute } = this.state;
 
     return (
       <MinuteInput
         key="minute"
         {...this.commonInputProps}
-        hour={hour}
         maxDetail={maxDetail}
         value={minute}
       />
@@ -369,15 +443,13 @@ export default class TimeInput extends PureComponent {
       return null;
     }
 
-    const { hour, minute, second } = this.state;
+    const { second } = this.state;
 
     return (
       <SecondInput
         key="second"
         {...this.commonInputProps}
-        hour={hour}
         maxDetail={maxDetail}
-        minute={minute}
         value={second}
       />
     );
@@ -460,7 +532,6 @@ export default class TimeInput extends PureComponent {
 
     return (
       <div className={className}>
-        {this.renderNativeInput()}
         {this.renderCustomInputs()}
       </div>
     );

@@ -3,39 +3,21 @@ import PropTypes from 'prop-types';
 import mergeClassNames from 'merge-class-names';
 
 import {
-  getHours,
   convert24to12,
 } from '../shared/dates';
-import { isTime } from '../shared/propTypes';
-import { min, max, updateInputWidth } from '../shared/utils';
+import { updateInputWidth } from '../shared/utils';
 
 const select = element => element && element.select();
 
 export default class Hour12Input extends PureComponent {
-  get maxHour() {
-    const { maxTime } = this.props;
-    return min(
-      12,
-      maxTime && convert24to12(getHours(maxTime))[0],
-    );
-  }
-
-  get minHour() {
-    const { minTime } = this.props;
-    return max(
-      1,
-      minTime && convert24to12(getHours(minTime))[0],
-    );
-  }
 
   render() {
-    const { maxHour, minHour } = this;
     const {
       className, disabled, itemRef, onChange, onKeyDown, required, value,
     } = this.props;
 
     const name = 'hour12';
-    const value12 = value !== null && convert24to12(value)[0];
+    const v = value != null ? convert24to12(value)[0] : '';
 
     return (
       <input
@@ -45,8 +27,6 @@ export default class Hour12Input extends PureComponent {
         )}
         disabled={disabled}
         name={name}
-        max={maxHour}
-        min={minHour}
         onChange={onChange}
         onFocus={event => select(event.target)}
         onKeyDown={onKeyDown}
@@ -62,8 +42,7 @@ export default class Hour12Input extends PureComponent {
           }
         }}
         required={required}
-        type="number"
-        value={value12 !== null ? value12 : ''}
+        value={v}
       />
     );
   }
@@ -73,8 +52,6 @@ Hour12Input.propTypes = {
   className: PropTypes.string.isRequired,
   disabled: PropTypes.bool,
   itemRef: PropTypes.func,
-  maxTime: isTime,
-  minTime: isTime,
   onChange: PropTypes.func,
   onKeyDown: PropTypes.func,
   required: PropTypes.bool,
