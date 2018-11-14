@@ -9,7 +9,16 @@ export default class Sample extends Component {
     value: new Date(),
   }
 
-  onChange = value => this.setState({ value })
+  onChange = value => {
+    console.log('NEW VALUE:', value);
+    this.setState({ value })
+	}
+
+	componentDidMount() {
+    setTimeout(() => {
+      this.setState({value: new Date('2010-01-01T18:32:00')})
+    }, 5000)
+  }
 
   render() {
     const { value } = this.state;
@@ -24,6 +33,8 @@ export default class Sample extends Component {
             <TimePicker
               onChange={this.onChange}
               value={value}
+              minTime='12:15:00'
+              maxTime='18:15:00'
             />
           </main>
         </div>
