@@ -11,7 +11,7 @@
     "clean": "rimraf dist",
     "copy-styles": "node ./copy-styles.js",
     "prepublishOnly": "yarn run clean && yarn run build",
-    "prepare": "yarn run clean && yarn run build",
+    "prepare": "npm run clean && npm run build-js && npm run copy-styles && npm run build-styles",
     "test": "yarn run test-eslint && yarn run test-jest",
     "test-eslint": "eslint src/ test/ --ext .jsx,.js",
     "test-jest": "jest",
