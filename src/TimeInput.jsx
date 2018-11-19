@@ -165,28 +165,16 @@ export default class TimeInput extends PureComponent {
 
   // eslint-disable-next-line class-methods-use-this
   get divider() {
-    const { locale } = this.props;
-    const date = new Date(2017, 0, 1, 21, 12, 13);
-
-    return (
-      removeUnwantedCharacters(formatTime(date, locale))
-        .match(/[^0-9]/)[0]
-    );
+    return ':';
   }
 
   // eslint-disable-next-line class-methods-use-this
   get placeholder() {
     const { locale } = this.props;
-    const date = new Date(2017, 0, 1, 21, 13, 14);
-
-    return (
-      removeUnwantedCharacters(formatTime(date, locale))
-        .replace('21', 'hour-24')
-        .replace('9', 'hour-12')
-        .replace('13', 'minute')
-        .replace('14', 'second')
-        .replace(/AM|PM/i, `${this.divider}ampm`)
-    );
+    if (locale === 'en-US') {
+      return 'hour-12:minute:second :ampm';
+    }
+    return 'hour-24:minute:second';
   }
 
   get commonInputProps() {

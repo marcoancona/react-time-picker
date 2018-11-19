@@ -67,6 +67,9 @@ var MinuteInput = function (_PureComponent) {
         onFocus: function onFocus(event) {
           return select(event.target);
         },
+        onMouseDown: function onMouseDown(event) {
+          event.preventDefault();select(event.target);
+        },
         onKeyDown: onKeyDown,
         onKeyUp: function onKeyUp(event) {
           return (0, _utils.updateInputWidth)(event.target);
